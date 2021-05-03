@@ -19,18 +19,14 @@ app.static_folder = 'static'
 
 
 def getOutputsNames(net):  # Get the names of the output layers
-    # Get the names of all the layers in the network
     layersNames = net.getLayerNames()
-    # Get the names of the output layers, i.e. the layers with unconnected outputs
     return [layersNames[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
 
 def drawPred(image, classId, conf, left, top, right, bottom):  # Draw predicted bounding box
-    # Draw a bounding box.
     cv2.rectangle(image, (left, top), (right, bottom), (255, 178, 50), 3)
 
     label = '%.2f' % conf
-    # Get the label for the class name and its confidence
     assert(classId < len(classes))
     label = '%s:%s' % (classes[classId], label)
 
@@ -90,7 +86,6 @@ def postprocess(image, outp):
 
 def load_model():
     global model
-    # Load model
     model = cv2.dnn.readNetFromDarknet(
         "./YOLOv3/yolov3.cfg", "./YOLOv3/yolov3.weights")
     model.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
@@ -109,39 +104,32 @@ def process(image):
 
     outpout = model.forward(getOutputsNames(model))
     end_time = time.time()
-    print("Inference time: ", end_time-start_time)
+    inference_time = end_time-start_time
+    print("Inference time: ", inference_time)
     # Remove the bounding boxes with low confidence
     postprocess(image, outpout)
 
     # Write the image with the detection boxes
     cv2.imwrite(output_file_name, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
-    return "done"
+    return inference_time
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    # ensure an image was properly uploaded to our endpoint
-    if flask.request.method == "POST":
-        print(flask.request)
-        if flask.request.json.get("image_encoded"):
-            # read the image in PIL format
-            # image = flask.request.files["image"].read()
-            # image = Image.open(io.BytesIO(image))
-            # Write to a file to show conversion worked
-            with open('test.txt', 'w') as f_output:
-                f_output.write(flask.request.json.get("image_encoded"))
-            jpg_original = base64.decodebytes(
-                flask.request.json.get("image_encoded").encode())
-
-            image = np.frombuffer(jpg_original, dtype=np.uint8)
-            # preprocess the image and prepare it for classification
-            # image = np.array(image)
-            process(image)
-            image = cv2.imread('output.jpg')
-            jpg_encoded = base64.b64encode(
-                cv2.imencode('.jpg', image)[1]).decode()
-    # return the data dictionary as a JSON response
-    return {"status": "success", "image_encoded": jpg_encoded}
+    if flask.request.json.get("image_encoded"):
+        jpg_original = flask.request.json.get("image_encoded")
+        prefix, encoded_string = jpg_original.split(',')
+        image = Image.open(io.BytesIO(base64.b64decode(encoded_string)))
+        image_np = np.array(image)
+        inference_time = process(image_np)
+        jpg_encoded = prefix + "," + base64.b64encode(
+            cv2.imencode('.jpg', cv2.imread('output.jpg'))[1]).decode()
+    return {"status": "success", "inference_time": inference_time, "image_encoded": jpg_encoded}
 
 
 @app.route("/predict_file", methods=["POST"])
@@ -160,11 +148,6 @@ def predict_file():
                 cv2.imencode('.jpg', image)[1]).decode()
     # return the data dictionary as a JSON response
     return {"status": "success", "image_encoded": jpg_encoded}
-
-
-@app.route('/home')
-def home():
-    return render_template('home.html')
 
 
 if __name__ == "__main__":
