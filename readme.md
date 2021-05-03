@@ -1,5 +1,6 @@
 ### Deploy an Object Detection Service
 
+![Demo](./demo.gif)
 ![Human](./human_sample_output.jpg)
 
 #### Client-Server Architecture
