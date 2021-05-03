@@ -1,11 +1,11 @@
 from PIL import Image
 import numpy as np
 import flask
+from flask import send_file
+from flask import render_template
 import io
 import cv2
 import os.path
-from flask import send_file
-from flask import render_template
 import time
 import base64
 
