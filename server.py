@@ -132,24 +132,6 @@ def predict():
     return {"status": "success", "inference_time": inference_time, "image_encoded": jpg_encoded}
 
 
-@app.route("/predict_file", methods=["POST"])
-def predict_file():
-    # ensure an image was properly uploaded to our endpoint
-    if flask.request.method == "POST":
-        if flask.request.files.get("image"):
-            # read the image in PIL format
-            image = flask.request.files["image"].read()
-            image = Image.open(io.BytesIO(image))
-            # preprocess the image and prepare it for classification
-            image = np.array(image)
-            process(image)
-            image = cv2.imread('output.jpg')
-            jpg_encoded = base64.b64encode(
-                cv2.imencode('.jpg', image)[1]).decode()
-    # return the data dictionary as a JSON response
-    return {"status": "success", "image_encoded": jpg_encoded}
-
-
 if __name__ == "__main__":
     load_model()
     app.run()

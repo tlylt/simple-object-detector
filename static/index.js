@@ -38,26 +38,3 @@ const handleImageUpload = (event) => {
             });
     });
 };
-const handleImageUpload_file = (event) => {
-    const files = event.target.files;
-    const formData = new FormData();
-    formData.append("image", files[0]);
-
-    fetch("/predict_file", {
-        method: "POST",
-        body: formData,
-    })
-        .then((response) => response.blob())
-        .then((image) => URL.createObjectURL(image))
-        .then((imageUrl) => {
-            const image = document.createElement("img");
-            image.src = imageUrl;
-            console.log(imageUrl);
-            const container = document.querySelector("#display");
-            container.innerHTML = "";
-            container.appendChild(image);
-        })
-        .catch((error) => {
-            console.error(error);
-        });
-};

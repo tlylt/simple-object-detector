@@ -36,3 +36,11 @@ Client:
 - Upload a test image by clicking on the upload button and select "test.jpg" included in the repo. Note that only jpg format is supported
 - The transfer and inference should be automatic and the image with annotation will be displayed below the upload box as soon as the response is received
 - The inference time, to 3 decimal places, will also be shown above the image
+
+#### Inference time
+
+Sample images and image outputs are included in the images folder.
+
+- burger: 0.443s
+- children: 0.255s
+- ducks: 0.247s
